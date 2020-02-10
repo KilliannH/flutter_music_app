@@ -21,6 +21,11 @@ class Person
 //MyApp() is an instance of MyApp class, we need the parentheses so Dart will not consider it as an argument type.
 
 class MyApp extends StatelessWidget {
+
+  void answerQuestion() {
+    print('Answer chosen !');
+  }
+
   @override
   Widget build(BuildContext context) { // build method always responsible to return a new Widget.
 
@@ -37,9 +42,9 @@ class MyApp extends StatelessWidget {
         body: Column(
           children: [
             Text('The question'),
-            RaisedButton(child: Text('Answer 1'), onPressed: null),
-            RaisedButton(child: Text('Answer 2'), onPressed: null),
-            RaisedButton(child: Text('Answer 3'), onPressed: null)
+            RaisedButton(child: Text('Answer 1'), onPressed: answerQuestion),
+            RaisedButton(child: Text('Answer 2'), onPressed: answerQuestion),
+            RaisedButton(child: Text('Answer 3'), onPressed: answerQuestion)
           ],
         ),
       ),
@@ -55,3 +60,9 @@ class MyApp extends StatelessWidget {
 // we can only pass 1 Widget to the body.
 
 // 2 types of Widgets : Output, Input (Text, Card...) : VISIBLE, Layout, Control (Row, Columns...) : INVISIBLE
+
+// Ctrl Q to see the function signature.
+
+// All classes have to work as a Standalone.
+
+// the callback for onPressed is executed (we don't pass the function with parentheses).
