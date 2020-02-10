@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import './question.dart';
+
+// By convention : first import block for all packages, second import for our own files.
+
 void main() {
   runApp(MyApp());
 }
@@ -25,17 +29,17 @@ class MyApp extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
-    return MyAppState();
+    return _MyAppState();
   }
 }
 
-class MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> {
 
-  var questionIndex = 0;
+  var _questionIndex = 0;
 
-  void answerQuestion() {
+  void _answerQuestion() {
     setState(() {
-      questionIndex += 1;
+      _questionIndex += 1;
     });
     print('Answer chosen !');
   }
@@ -46,7 +50,7 @@ class MyAppState extends State<MyApp> {
     // data
     var questions = [
       'What\'s your favorite color?',
-      'What\'s your faforite animals?',
+      'What\'s your favorite animals?',
     ];
 
     return MaterialApp(
@@ -55,10 +59,18 @@ class MyAppState extends State<MyApp> {
         ),
         body: Column(
           children: [
-            Text(questions[questionIndex]),
-            RaisedButton(child: Text('Answer 1'), onPressed: answerQuestion),
-            RaisedButton(child: Text('Answer 2'), onPressed: answerQuestion),
-            RaisedButton(child: Text('Answer 3'), onPressed: answerQuestion)
+            Question(
+                questions[_questionIndex]
+            ),
+            RaisedButton(
+                child: Text('Answer 1'),
+                onPressed: _answerQuestion),
+            RaisedButton(
+                child: Text('Answer 2'),
+                onPressed: _answerQuestion),
+            RaisedButton(
+                child: Text('Answer 3'),
+                onPressed: _answerQuestion)
           ],
         ),
       ),
@@ -91,4 +103,9 @@ class MyAppState extends State<MyApp> {
 // The Widget that extends the Stateful Widget will override createSTate() that returns the WidgetClassState
 // When a state has changed, we call setState() and we pass the changed value in this function.
 // under the hood, the build method from the stateful widget is called again.
+
+// In Dart, we can control what could be accessed from another file.
+// _ mark make a class private and accessible only inside that file.
+
+// Good convention rule = 1 Widget per file. (exception, ex if you have two widgets that really works together)
 
