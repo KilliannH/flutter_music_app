@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import './question.dart';
+import './answer.dart';
 
 // By convention : first import block for all packages, second import for our own files.
 
@@ -62,15 +63,10 @@ class _MyAppState extends State<MyApp> {
             Question(
                 questions[_questionIndex]
             ),
-            RaisedButton(
-                child: Text('Answer 1'),
-                onPressed: _answerQuestion),
-            RaisedButton(
-                child: Text('Answer 2'),
-                onPressed: _answerQuestion),
-            RaisedButton(
-                child: Text('Answer 3'),
-                onPressed: _answerQuestion)
+            Answer('Answer 1', _answerQuestion),
+            Answer('Answer 2', _answerQuestion),
+            Answer('Answer 3', _answerQuestion),
+            Answer('Answer 4', _answerQuestion),
           ],
         ),
       ),
@@ -109,3 +105,7 @@ class _MyAppState extends State<MyApp> {
 
 // Good convention rule = 1 Widget per file. (exception, ex if you have two widgets that really works together)
 
+// You manage the state of child widgets (Question, Answer) in the parent widget (AppWidget)
+// This pattern is called lifting state up
+
+// We can pass the callback of buttonPressed in the Answer Widget
