@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_music_app/services/dataService.dart';
 import 'package:flutter_music_app/songItem.dart';
@@ -35,6 +36,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final List<Choice> choices = const <Choice>[
+    const Choice(title: 'Albums'),
+    const Choice(title: 'Artists'),
+    const Choice(title: 'Add', icon: Icons.add)
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -42,30 +48,95 @@ class _MyAppState extends State<MyApp> {
 
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('My Music'),
-        ),
+        appBar: AppBar(title: Text('My Music'), actions: <Widget>[
+          // overflow menu
+          PopupMenuButton<Choice>(
+            onSelected: null,
+            itemBuilder: (BuildContext context) {
+              return choices.map((Choice choice) {
+                return PopupMenuItem<Choice>(
+                  value: choice,
+                  child: Text(choice.title),
+                );
+              }).toList();
+            },
+          ),
+        ]),
         body: FutureBuilder<dynamic>(
-          future: DataService.getSongs(), // a previously-obtained Future<String> or null
+          future: DataService
+              .getSongs(), // a previously-obtained Future<dynamic> or null
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.hasData) {
-              List songList = snapshot.data;
-              return ListView.separated(
-                padding: const EdgeInsets.all(8),
-                itemCount: songList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return InkWell(
-                    child: Container(
-                      height: 70,
-                      child: SongItem(
-                          songList[index].title, songList[index].artist, songList[index].album_img),
-                    ),
-                    onTap: () => print(index),
-                  );
-                },
-                separatorBuilder: (BuildContext context, int index) =>
-                    const Divider(),
-              );
+              List songs = snapshot.data;
+              return Column(children: <Widget>[
+                Expanded(
+                    child: ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: songs.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return InkWell(
+                      child: Container(
+                        height: 70,
+                        child: SongItem(songs[index].title, songs[index].artist,
+                            songs[index].albumImg),
+                      ),
+                      onTap: () => print(index),
+                    );
+                  },
+                  separatorBuilder: (BuildContext context, int index) =>
+                      const Divider(),
+                )),
+                Divider(thickness: 1.5, indent: 0, endIndent: 0,),
+                Container(
+                  height: 50,
+                  margin: EdgeInsets.only(bottom: 7),
+                  // margin: EdgeInsets.all(10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: InkWell(
+                          customBorder: new CircleBorder(),
+                          onTap: () {},
+                          splashColor: Colors.black12,
+                          child: new Icon(
+                            Icons.skip_previous,
+                            color: Colors.black38,
+                            size: 30,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: InkWell(
+                          customBorder: new CircleBorder(),
+                          onTap: () {},
+                          splashColor: Colors.black12,
+                          child: new Icon(
+                            Icons.play_arrow,
+                            color: Colors.black38,
+                            size: 30,
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: InkWell(
+                          customBorder: new CircleBorder(),
+                          onTap: () {},
+                          splashColor: Colors.black12,
+                          child: new Icon(
+                            Icons.skip_next,
+                            color: Colors.black38,
+                            size: 30,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ),
+              ]);
             } else if (snapshot.hasError) {
               return Center(
                   child: Column(
@@ -104,6 +175,13 @@ class _MyAppState extends State<MyApp> {
       ),
     );
   }
+}
+
+class Choice {
+  const Choice({this.title, this.icon});
+
+  final String title;
+  final IconData icon;
 }
 
 // The role of Scaffold is to create a base design for our app
