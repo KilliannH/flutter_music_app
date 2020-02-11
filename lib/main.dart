@@ -27,7 +27,6 @@ class Person
 //MyApp() is an instance of MyApp class, we need the parentheses so Dart will not consider it as an argument type.
 
 class MyApp extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() {
     return _MyAppState();
@@ -35,51 +34,89 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   // data
   final songs = const [
-    {
-      'title': 'songTitle1',
-      'artist': 'songArtist1'
-    },
-    {
-      'title': 'songTitle2',
-      'artist': 'songArtist2'
-    },
-    {
-      'title': 'songTitle3',
-      'artist': 'songArtist3'
-    },
+    {'title': 'songTitle1', 'artist': 'songArtist1'},
+    {'title': 'songTitle2', 'artist': 'songArtist2'},
+    {'title': 'songTitle3', 'artist': 'songArtist3'},
   ];
 
+  Future<String> _calculation = Future<String>.delayed(
+    Duration(seconds: 2),
+    () => 'Data Loaded',
+  );
+
   @override
-  Widget build(BuildContext context) { // build method always responsible to return a new Widget.
+  Widget build(BuildContext context) {
+    // build method always responsible to return a new Widget.
 
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: Text('My Music'),
+        appBar: AppBar(
+          title: Text('My Music'),
         ),
-        body: ListView.separated(
-            padding: const EdgeInsets.all(8),
-            itemCount: songs.length,
-            itemBuilder: (BuildContext context, int index) {
-              return InkWell(
-                  child: Container(
-                    height: 50,
-                    child: SongItem(songs[index]['title'], songs[index]['artist']),
-                  ),
-                onTap: () => print(index),
+        body: FutureBuilder<String>(
+          future: _calculation, // a previously-obtained Future<String> or null
+          builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+            if (snapshot.hasData) {
+              return ListView.separated(
+                padding: const EdgeInsets.all(8),
+                itemCount: songs.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return InkWell(
+                    child: Container(
+                      height: 50,
+                      child: SongItem(
+                          songs[index]['title'], songs[index]['artist']),
+                    ),
+                    onTap: () => print(index),
+                  );
+                },
+                separatorBuilder: (BuildContext context, int index) =>
+                    const Divider(),
               );
+            } else if (snapshot.hasError) {
+              return Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 60,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Text('Error: ${snapshot.error}'),
+                    )
+                  ]));
+            } else {
+              return Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                    SizedBox(
+                      child: CircularProgressIndicator(),
+                      width: 60,
+                      height: 60,
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 16),
+                      child: Text('Awaiting result...'),
+                    )
+                  ]));
+            }
           },
-          separatorBuilder: (BuildContext context, int index) => const Divider(),
         ),
       ),
     );
   }
 }
 
-// Scaffold has a rol to create a base design for our app
-// you compose your app by mixing widgets, and basically everithing is a widget.
+// The role of Scaffold is to create a base design for our app
+// you compose your app by mixing widgets, and basically everything is a widget.
 
 // / ! \ Always add a comma after your instantiated widget
 
@@ -92,7 +129,6 @@ class _MyAppState extends State<MyApp> {
 // All classes have to work as a Standalone.
 
 // the callback for onPressed is executed (we don't pass the function with parentheses).
-
 
 // Here we try to change the state of a widget in a stateless Widget...
 
@@ -131,4 +167,3 @@ class _MyAppState extends State<MyApp> {
 
 // You can split widgets with subwidgets : in general it's always encouraged to create more small widgets
 // better for readable code & performance.
-
