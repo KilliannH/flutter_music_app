@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_music_app/songItem.dart';
 
 import './question.dart';
 import './answer.dart';
@@ -29,34 +30,27 @@ class MyApp extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    // TODO: implement createState
     return _MyAppState();
   }
 }
 
 class _MyAppState extends State<MyApp> {
 
-  var _questionIndex = 0;
-
-
   // data
-  final questions = const [
+  final songs = const [
     {
-      'questionText': 'What\'s your favorite color?',
-      'answers': ['Black', 'Yellow', 'Green', 'White']
+      'title': 'songTitle1',
+      'artist': 'songArtist1'
     },
     {
-      'questionText': 'What\'s your favorite animals?',
-      'answers': ['Rabbit', 'Snake', 'Elephant', 'Lion']
-    }
+      'title': 'songTitle2',
+      'artist': 'songArtist2'
+    },
+    {
+      'title': 'songTitle3',
+      'artist': 'songArtist3'
+    },
   ];
-
-  void _answerQuestion() {
-    setState(() {
-      _questionIndex += 1;
-    });
-    print('Answer chosen !');
-  }
 
   @override
   Widget build(BuildContext context) { // build method always responsible to return a new Widget.
@@ -65,18 +59,19 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(title: Text('My Music'),
         ),
-        body:_questionIndex < questions.length ?
-        Column(
-          children: [
-            Question(
-                questions[_questionIndex]['questionText']
-            ),
-            ...(questions[_questionIndex]['answers'] as List<String>).map((answer) {
-              return Answer(_answerQuestion, answer);
-            }).toList()
-          ],
-        ) : Center(
-            child: Text('You did it'),
+        body: ListView.separated(
+            padding: const EdgeInsets.all(8),
+            itemCount: songs.length,
+            itemBuilder: (BuildContext context, int index) {
+              return InkWell(
+                  child: Container(
+                    height: 50,
+                    child: SongItem(songs[index]['title'], songs[index]['artist']),
+                  ),
+                onTap: () => print(index),
+              );
+          },
+          separatorBuilder: (BuildContext context, int index) => const Divider(),
         ),
       ),
     );
