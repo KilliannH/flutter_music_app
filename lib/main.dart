@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_music_app/services/dataService.dart';
 import 'package:flutter_music_app/songItem.dart';
 
 import './question.dart';
@@ -34,17 +35,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // data
-  final songs = const [
-    {'title': 'songTitle1', 'artist': 'songArtist1'},
-    {'title': 'songTitle2', 'artist': 'songArtist2'},
-    {'title': 'songTitle3', 'artist': 'songArtist3'},
-  ];
-
-  Future<String> _calculation = Future<String>.delayed(
-    Duration(seconds: 2),
-    () => 'Data Loaded',
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -55,19 +45,20 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: Text('My Music'),
         ),
-        body: FutureBuilder<String>(
-          future: _calculation, // a previously-obtained Future<String> or null
-          builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        body: FutureBuilder<dynamic>(
+          future: DataService.getSongs(), // a previously-obtained Future<String> or null
+          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.hasData) {
+              List songList = snapshot.data;
               return ListView.separated(
                 padding: const EdgeInsets.all(8),
-                itemCount: songs.length,
+                itemCount: songList.length,
                 itemBuilder: (BuildContext context, int index) {
                   return InkWell(
                     child: Container(
-                      height: 50,
+                      height: 70,
                       child: SongItem(
-                          songs[index]['title'], songs[index]['artist']),
+                          songList[index].title, songList[index].artist, songList[index].album_img),
                     ),
                     onTap: () => print(index),
                   );

@@ -5,15 +5,16 @@ import 'package:flutter/painting.dart';
 class SongItem extends StatelessWidget {
   final String songTitle;
   final String songArtist;
+  final String songAlbumImg;
 
-  SongItem(this.songTitle, this.songArtist);
+  SongItem(this.songTitle, this.songArtist, this.songAlbumImg);
 
   @override
   Widget build(BuildContext context) {
     return new Row(
       children: <Widget>[
         Image(
-              image: NetworkImage('https://flutter.github.io/assets-for-api-docs/assets/widgets/owl.jpg'),
+              image: NetworkImage(this.songAlbumImg),
               fit: BoxFit.contain,
             ),
         Container(
@@ -24,6 +25,7 @@ class SongItem extends StatelessWidget {
               children: <Widget>[
                 Text(
                   songTitle,
+                  style: TextStyle(fontSize: 18),
                 ),
                 Text(
                   songArtist,
