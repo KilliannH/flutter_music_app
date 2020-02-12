@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_music_app/albumsRoute.dart';
+import 'package:flutter_music_app/aPlayer.dart';
 import 'package:flutter_music_app/services/dataService.dart';
 import 'package:flutter_music_app/songItem.dart';
 
@@ -36,152 +38,122 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final List<Choice> choices = const <Choice>[
-    const Choice(title: 'Albums'),
-    const Choice(title: 'Artists'),
-    const Choice(title: 'Add', icon: Icons.add)
-  ];
+  final List<String> appRoutes = const ['Albums', 'Artists', 'Add'];
 
   @override
   Widget build(BuildContext context) {
     // build method always responsible to return a new Widget.
 
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: Text('My Music'), actions: <Widget>[
-          // overflow menu
-          PopupMenuButton<Choice>(
-            onSelected: null,
-            itemBuilder: (BuildContext context) {
-              return choices.map((Choice choice) {
-                return PopupMenuItem<Choice>(
-                  value: choice,
-                  child: Text(choice.title),
-                );
-              }).toList();
-            },
-          ),
-        ]),
-        body: FutureBuilder<dynamic>(
-          future: DataService
-              .getSongs(), // a previously-obtained Future<dynamic> or null
-          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-            if (snapshot.hasData) {
-              List songs = snapshot.data;
-              return Column(children: <Widget>[
-                Expanded(
-                    child: ListView.separated(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: songs.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return InkWell(
-                      child: Container(
-                        height: 70,
-                        child: SongItem(songs[index].title, songs[index].artist,
-                            songs[index].albumImg),
-                      ),
-                      onTap: () => print(index),
-                    );
-                  },
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const Divider(),
-                )),
-                Divider(thickness: 1.5, indent: 0, endIndent: 0,),
-                Container(
-                  height: 50,
-                  margin: EdgeInsets.only(bottom: 7),
-                  // margin: EdgeInsets.all(10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: InkWell(
-                          customBorder: new CircleBorder(),
-                          onTap: () {},
-                          splashColor: Colors.black12,
-                          child: new Icon(
-                            Icons.skip_previous,
-                            color: Colors.black38,
-                            size: 30,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: InkWell(
-                          customBorder: new CircleBorder(),
-                          onTap: () {},
-                          splashColor: Colors.black12,
-                          child: new Icon(
-                            Icons.play_arrow,
-                            color: Colors.black38,
-                            size: 30,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: InkWell(
-                          customBorder: new CircleBorder(),
-                          onTap: () {},
-                          splashColor: Colors.black12,
-                          child: new Icon(
-                            Icons.skip_next,
-                            color: Colors.black38,
-                            size: 30,
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                ),
-              ]);
-            } else if (snapshot.hasError) {
-              return Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                    Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 60,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Text('Error: ${snapshot.error}'),
-                    )
-                  ]));
-            } else {
-              return Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                    SizedBox(
-                      child: CircularProgressIndicator(),
-                      width: 60,
-                      height: 60,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 16),
-                      child: Text('Awaiting result...'),
-                    )
-                  ]));
-            }
-          },
-        ),
+      home: Builder(
+        builder: (context) =>
+            Scaffold(
+              appBar: this._buildAppBar(),
+              body: FutureBuilder<dynamic>(
+                future: DataService
+                    .getSongs(),
+                // a previously-obtained Future<dynamic> or null
+                builder: (BuildContext context,
+                    AsyncSnapshot<dynamic> snapshot) {
+                  if (snapshot.hasData) {
+                    List songs = snapshot.data;
+                    return Column(children: <Widget>[
+                      Expanded(
+                          child: this._buildSongList(songs)),
+                      Divider(thickness: 1.5, indent: 0, endIndent: 0,),
+                      APlayer(songs[0].filename),
+                    ]);
+                  } else if (snapshot.hasError) {
+                    return Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red,
+                                size: 60,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: Text('Error: ${snapshot.error}'),
+                              )
+                            ]));
+                  } else {
+                    return Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              SizedBox(
+                                child: CircularProgressIndicator(),
+                                width: 60,
+                                height: 60,
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 16),
+                                child: Text('Awaiting result...'),
+                              )
+                            ]));
+                  }
+                },
+              ),
+            ),
       ),
     );
   }
-}
 
-class Choice {
-  const Choice({this.title, this.icon});
+  _buildAppBar() {
+    return AppBar(title: Text('My Music'), actions: <Widget>[ // overflow menu
+      PopupMenuButton<Object>(
+        onSelected: (value) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AlbumsRoute()),
+          );
+        },
+        itemBuilder: (BuildContext context) {
+          var list = List<PopupMenuEntry<Object>>();
+          list.add(PopupMenuItem<Object>(
+            value: 1,
+            child: Text('Albums'),
+          )
+          );
+          list.add(PopupMenuItem<Object>(
+            value: 2,
+            child: Text('Artists'),
+          )
+          );
+          list.add(PopupMenuDivider());
+          list.add(PopupMenuItem<Object>(
+            value: 3,
+            child: Text('Add'),
+          )
+          );
+          return list;
+        },
+      ),
+    ]);
+  }
 
-  final String title;
-  final IconData icon;
+  _buildSongList(songs) {
+    return ListView.separated(
+      padding: const EdgeInsets.all(8),
+      itemCount: songs.length,
+      itemBuilder: (BuildContext context, int index) {
+        return InkWell(
+          child: Container(
+            height: 70,
+            child: SongItem(songs[index].title, songs[index].artist,
+                songs[index].albumImg),
+          ),
+          onTap: () => print(index),
+        );
+      },
+      separatorBuilder: (BuildContext context, int index) =>
+      const Divider(),
+    );
+  }
 }
 
 // The role of Scaffold is to create a base design for our app
