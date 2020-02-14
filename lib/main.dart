@@ -2,14 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_music_app/albumsRoute.dart';
 import 'package:flutter_music_app/aPlayer.dart';
-import 'package:flutter_music_app/mySchedule.dart';
+import 'package:flutter_music_app/schedules/playerSchedule.dart';
 import 'package:flutter_music_app/services/dataService.dart';
 import 'package:flutter_music_app/songItem.dart';
 import 'package:provider/provider.dart';
-
-import './question.dart';
-import './answer.dart';
-import 'models/song.dart';
 
 // By convention : first import block for all packages, second import for our own files.
 
@@ -49,12 +45,13 @@ class _MyAppState extends State<MyApp> {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => MySchedule()),
+        ChangeNotifierProvider(create: (_) => PlayerSchedule()),
       ],
       child:
         MaterialApp(
-          home: Scaffold(
-            appBar: this._buildAppBar(),
+          home: Builder(
+            builder: (navContext) => Scaffold(
+            appBar: this._buildAppBar(navContext),
             body: FutureBuilder<dynamic>(
               future: DataService.getSongs(),
               // a previously-obtained Future<dynamic> or null
@@ -107,16 +104,17 @@ class _MyAppState extends State<MyApp> {
             ),
           ),
         ),
+        ),
     );
   }
 
-  _buildAppBar() {
+  _buildAppBar(navContext) {
     return AppBar(title: Text('My Music'), actions: <Widget>[
       // overflow menu
       PopupMenuButton<Object>(
         onSelected: (value) {
           Navigator.push(
-            context,
+            navContext,
             MaterialPageRoute(builder: (context) => AlbumsRoute()),
           );
         },
@@ -142,7 +140,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   _buildSongList(songs, context) {
-    final schedule = Provider.of<MySchedule>(context);
+    final schedule = Provider.of<PlayerSchedule>(context);
 
     return ListView.separated(
       padding: const EdgeInsets.all(8),

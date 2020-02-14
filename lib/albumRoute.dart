@@ -4,19 +4,19 @@ import 'package:flutter_music_app/services/dataService.dart';
 
 import 'aPlayer.dart';
 
-class AlbumsRoute extends StatelessWidget {
+class AlbumRoute extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: this._buildAppBar(context),
       body: FutureBuilder<dynamic>(
-          future: DataService.getAlbums(),
+          future: DataService.getSongsByAlbum(),
           // a previously-obtained Future<dynamic> or null
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.hasData) {
-              List albums = snapshot.data;
+              List songs = snapshot.data;
               return Column(children: <Widget>[
-                Expanded(child: this._buildAlbumList(albums)),
+                Expanded(child: this._buildSongList(songs)),
                 Divider(
                   thickness: 1.5,
                   indent: 0,

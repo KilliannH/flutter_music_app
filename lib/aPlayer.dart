@@ -1,13 +1,8 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_music_app/mySchedule.dart';
+import 'package:flutter_music_app/schedules/playerSchedule.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart' show rootBundle;
-
-import 'dart:convert';
-
-import 'models/song.dart';
 
 class APlayer extends StatefulWidget {
 
@@ -21,11 +16,9 @@ class APlayer extends StatefulWidget {
 
 class APlayerState extends State<APlayer> {
 
-  AudioPlayer audioPlayer = AudioPlayer();
 
-  AudioPlayerState playerState;
+  PlayerSchedule schedule;
 
-  Song songLoaded;
   List<Widget> widgetArr = [];
 
   var playerIcons = [
@@ -46,79 +39,29 @@ class APlayerState extends State<APlayer> {
     )
   ];
 
-  Future<String> prepareUrl(String filename) async {
-    var value = await rootBundle.loadString('assets/config.json');
-
-    final config = jsonDecode(value);
-
-    return '${config['api_host']}:${config['api_port']}${config['api_endpoint']}' + '/stream/' + filename;
-  }
-
-  Future<int> pause() async {
-    int result = await audioPlayer.pause();
-    if(result == 1) {
-      print('pause success');
-      setState(() {
+  _toggleIcon(playerState) {
+    if(playerState == AudioPlayerState.PAUSED) {
         playerIcons[1] = Icon(
           Icons.play_arrow,
           color: Colors.black38,
           size: 30,
         );
-      });
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-
-  Future<int> resume() async {
-    int result = await audioPlayer.resume();
-    if(result == 1) {
-      print('resume success');
-      setState(() {
+    } else if (playerState == AudioPlayerState.PLAYING) {
         playerIcons[1] = Icon(
           Icons.pause,
           color: Colors.black38,
           size: 30,
         );
-      });
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-
-  Future<int> _loadPlayer(Song song) async {
-    final url = await prepareUrl(song.filename);
-
-    int result = await audioPlayer.play(url);
-    if (result == 1) {
-      print('play success');
-      setState(() {
-        playerIcons[1] = Icon(
-          Icons.pause,
-          color: Colors.black38,
-          size: 30,
-        );
-      });
-      return 1;
-      // success
-    } else {
-      return 0;
     }
   }
 
   @override
   Widget build(BuildContext context) {
 
-    final schedule = Provider.of<MySchedule>(context);
-
-    audioPlayer.onPlayerStateChanged.listen((AudioPlayerState s) {
-        print('Current player state: $s');
-        setState(() => playerState = s);
-    });
+    schedule = Provider.of<PlayerSchedule>(context);
 
     if(schedule.selectedSong != null) {
+      _toggleIcon(schedule.playerState);
       widgetArr = [
         Text(schedule.selectedSong.filename),
         Padding(
@@ -135,10 +78,16 @@ class APlayerState extends State<APlayer> {
             child: InkWell(
                 customBorder: new CircleBorder(),
                 onTap: () {
-                  if(playerState == AudioPlayerState.PLAYING) {
-                    pause();
-                  } else if(playerState == AudioPlayerState.PAUSED) {
-                    resume();
+                  if(schedule.playerState == AudioPlayerState.PLAYING) {
+                    schedule.pause();
+                    setState(() {
+                      _toggleIcon(schedule.playerState);
+                    });
+                  } else if(schedule.playerState == AudioPlayerState.PAUSED) {
+                    schedule.resume();
+                    setState(() {
+                      _toggleIcon(schedule.playerState);
+                    });
                   }
                 },
                 splashColor: Colors.black12,
@@ -155,13 +104,6 @@ class APlayerState extends State<APlayer> {
             )
         ),
       ];
-      if(songLoaded == null) {
-        songLoaded = schedule.selectedSong;
-        _loadPlayer(songLoaded);
-      } else if (songLoaded != schedule.selectedSong) {
-        songLoaded = schedule.selectedSong;
-        _loadPlayer(songLoaded);
-      }
 
     } else {
       widgetArr = [Text('No song selected')];
