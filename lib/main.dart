@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_music_app/albumsRoute.dart';
 import 'package:flutter_music_app/aPlayer.dart';
-import 'package:flutter_music_app/schedules/playerSchedule.dart';
+import 'package:flutter_music_app/playerScreen.dart';
+
 import 'package:flutter_music_app/services/dataService.dart';
 import 'package:flutter_music_app/songItem.dart';
 import 'package:provider/provider.dart';
@@ -43,68 +43,54 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     // build method always responsible to return a new Widget.
 
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => PlayerSchedule()),
-      ],
-      child:
-        MaterialApp(
+    return MaterialApp(
           home: Builder(
             builder: (navContext) => Scaffold(
             appBar: this._buildAppBar(navContext),
-            body: FutureBuilder<dynamic>(
-              future: DataService.getSongs(),
-              // a previously-obtained Future<dynamic> or null
-              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                if (snapshot.hasData) {
-                  List songs = snapshot.data;
-                  return Column(children: <Widget>[
-                    Expanded(child: this._buildSongList(songs, context)),
-                    Divider(
-                      thickness: 1.5,
-                      indent: 0,
-                      endIndent: 0,
-                    ),
-                    APlayer(),
-                  ]);
-                } else if (snapshot.hasError) {
-                  return Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 60,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Text('Error: ${snapshot.error}'),
-                        )
-                      ]));
-                } else {
-                  return Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                        SizedBox(
-                          child: CircularProgressIndicator(),
-                          width: 60,
-                          height: 60,
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 16),
-                          child: Text('Awaiting result...'),
-                        )
-                      ]));
-                }
-              },
+              body: FutureBuilder<dynamic>(
+                future: DataService.getSongs(),
+                // a previously-obtained Future<dynamic> or null
+                builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                  if (snapshot.hasData) {
+                    List songs = snapshot.data;
+                    return _buildSongList(songs, context);
+                  } else if (snapshot.hasError) {
+                    return Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                          Icon(
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 60,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Text('Error: ${snapshot.error}'),
+                          )
+                        ]));
+                  } else {
+                    return Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                          SizedBox(
+                            child: CircularProgressIndicator(),
+                            width: 60,
+                            height: 60,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(top: 16),
+                            child: Text('Awaiting result...'),
+                          )
+                        ]));
+                  }
+                },
+              ),
             ),
           ),
-        ),
-        ),
     );
   }
 
@@ -112,26 +98,12 @@ class _MyAppState extends State<MyApp> {
     return AppBar(title: Text('My Music'), actions: <Widget>[
       // overflow menu
       PopupMenuButton<Object>(
-        onSelected: (value) {
-          Navigator.push(
-            navContext,
-            MaterialPageRoute(builder: (context) => AlbumsRoute()),
-          );
-        },
+        onSelected: (value) {},
         itemBuilder: (BuildContext context) {
           var list = List<PopupMenuEntry<Object>>();
           list.add(PopupMenuItem<Object>(
             value: 1,
-            child: Text('Albums'),
-          ));
-          list.add(PopupMenuItem<Object>(
-            value: 2,
-            child: Text('Artists'),
-          ));
-          list.add(PopupMenuDivider());
-          list.add(PopupMenuItem<Object>(
-            value: 3,
-            child: Text('Add'),
+            child: Text('Add New'),
           ));
           return list;
         },
@@ -140,7 +112,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   _buildSongList(songs, context) {
-    final schedule = Provider.of<PlayerSchedule>(context);
 
     return ListView.separated(
       padding: const EdgeInsets.all(8),
@@ -153,9 +124,9 @@ class _MyAppState extends State<MyApp> {
                   songs[index].albumImg),
             ),
             onTap: () {
-              // this is required to rebuild the player
-              schedule.setSelectedSong(songs[index]);
-            });
+              return Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerScreen(songs[index])));
+            }
+        );
       },
       separatorBuilder: (BuildContext context, int index) => const Divider(),
     );

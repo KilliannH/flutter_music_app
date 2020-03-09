@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_music_app/models/album.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_music_app/models/song.dart';
@@ -30,26 +29,6 @@ class DataService {
 
       List<Song> songList = songsJson.map((songJson) => Song.fromJson(songJson)).toList();
       return songList;
-  }
-
-  static Future<List<Album>> getAlbums() async {
-    var value = await loadAsset();
-
-    var config = jsonDecode(value);
-    var client = http.Client();
-
-    String apiUrl = '${config['api_host']}:${config['api_port']}${config['api_endpoint']}';
-    String apiKey = config['api_key'];
-
-    var response = await client.get(Uri.parse(apiUrl + '/albums'),
-        headers: {
-          HttpHeaders.authorizationHeader: apiKey
-        });
-
-    var albumsJson = jsonDecode(response.body) as List;
-
-    List<Album> albumList = albumsJson.map((albumJson) => Album.fromJson(albumJson)).toList();
-    return albumList;
   }
 
 }

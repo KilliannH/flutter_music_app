@@ -1,124 +1,192 @@
-import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:audioplayer/audioplayer.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_music_app/schedules/playerSchedule.dart';
-import 'package:provider/provider.dart';
+import 'package:http/http.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
+import 'dart:convert';
+import './models/song.dart';
+
+typedef void OnError(Exception exception);
+
+Future<String> prepareUrl(String filename) async {
+  var value = await rootBundle.loadString('assets/config.json');
+
+  final config = jsonDecode(value);
+
+  return '${config['api_host']}:${config['api_port']}${config['api_endpoint']}' + '/stream/' + filename;
+}
+
+enum PlayerState { stopped, playing, paused }
 
 class APlayer extends StatefulWidget {
 
-  APlayer();
+  final Song song;
+  APlayer(this.song);
 
   @override
-  State<StatefulWidget> createState() {
-    return APlayerState();
-  }
+  _APlayerState createState() => new _APlayerState();
 }
 
-class APlayerState extends State<APlayer> {
+class _APlayerState extends State<APlayer> {
+  Duration duration;
+  Duration position;
 
+  AudioPlayer audioPlayer;
 
-  PlayerSchedule schedule;
+  var url;
 
-  List<Widget> widgetArr = [];
+  PlayerState playerState = PlayerState.stopped;
 
-  var playerIcons = [
-    Icon(
-      Icons.skip_previous,
-      color: Colors.black38,
-      size: 30,
-    ),
-    Icon(
-      Icons.play_arrow,
-      color: Colors.black38,
-      size: 30,
-    ),
-    Icon(
-      Icons.skip_next,
-      color: Colors.black38,
-      size: 30,
-    )
-  ];
+  get isPlaying => playerState == PlayerState.playing;
 
-  _toggleIcon(playerState) {
-    if(playerState == AudioPlayerState.PAUSED) {
-        playerIcons[1] = Icon(
-          Icons.play_arrow,
-          color: Colors.black38,
-          size: 30,
-        );
-    } else if (playerState == AudioPlayerState.PLAYING) {
-        playerIcons[1] = Icon(
-          Icons.pause,
-          color: Colors.black38,
-          size: 30,
-        );
-    }
+  get isPaused => playerState == PlayerState.paused;
+
+  get durationText =>
+      duration != null ? duration
+          .toString()
+          .split('.')
+          .first : '';
+
+  get positionText =>
+      position != null ? position
+          .toString()
+          .split('.')
+          .first : '';
+
+  StreamSubscription _positionSubscription;
+  StreamSubscription _audioPlayerStateSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    initAudioPlayer();
+  }
+
+  @override
+  void dispose() {
+    _positionSubscription.cancel();
+    _audioPlayerStateSubscription.cancel();
+    audioPlayer.stop();
+    super.dispose();
+  }
+
+  void initAudioPlayer() {
+    audioPlayer = new AudioPlayer();
+    _positionSubscription = audioPlayer.onAudioPositionChanged
+        .listen((p) => setState(() => position = p));
+    _audioPlayerStateSubscription =
+        audioPlayer.onPlayerStateChanged.listen((s) {
+          if (s == AudioPlayerState.PLAYING) {
+            setState(() => duration = audioPlayer.duration);
+          } else if (s == AudioPlayerState.STOPPED) {
+            onComplete();
+            setState(() {
+              position = duration;
+            });
+          }
+        }, onError: (msg) {
+          setState(() {
+            playerState = PlayerState.stopped;
+            duration = new Duration(seconds: 0);
+            position = new Duration(seconds: 0);
+          });
+        });
+  }
+
+  Future play() async {
+    url = await prepareUrl(widget.song.filename);
+    await audioPlayer.play(url);
+    setState(() {
+      playerState = PlayerState.playing;
+    });
+  }
+
+  Future pause() async {
+    await audioPlayer.pause();
+    setState(() => playerState = PlayerState.paused);
+  }
+
+  Future stop() async {
+    await audioPlayer.stop();
+    setState(() {
+      playerState = PlayerState.stopped;
+      position = new Duration();
+    });
+  }
+
+  void onComplete() {
+    setState(() => playerState = PlayerState.stopped);
   }
 
   @override
   Widget build(BuildContext context) {
-
-    schedule = Provider.of<PlayerSchedule>(context);
-
-    if(schedule.selectedSong != null) {
-      _toggleIcon(schedule.playerState);
-      widgetArr = [
-        Text(schedule.selectedSong.filename),
-        Padding(
-            padding: EdgeInsets.all(10.0),
-            child: InkWell(
-                customBorder: new CircleBorder(),
-                onTap: () {},
-                splashColor: Colors.black12,
-                child: playerIcons[0]
-            )
-        ),
-        Padding(
-            padding: EdgeInsets.all(10.0),
-            child: InkWell(
-                customBorder: new CircleBorder(),
-                onTap: () {
-                  if(schedule.playerState == AudioPlayerState.PLAYING) {
-                    schedule.pause();
-                    setState(() {
-                      _toggleIcon(schedule.playerState);
-                    });
-                  } else if(schedule.playerState == AudioPlayerState.PAUSED) {
-                    schedule.resume();
-                    setState(() {
-                      _toggleIcon(schedule.playerState);
-                    });
-                  }
-                },
-                splashColor: Colors.black12,
-                child: playerIcons[1]
-            )
-        ),
-        Padding(
-            padding: EdgeInsets.all(10.0),
-            child: InkWell(
-                customBorder: new CircleBorder(),
-                onTap: () {},
-                splashColor: Colors.black12,
-                child: playerIcons[2]
-            )
-        ),
-      ];
-
-    } else {
-      widgetArr = [Text('No song selected')];
-    }
-    // TODO: implement build
-    return Container(
-        height: 50,
-        margin: EdgeInsets.only(bottom: 7),
-        // margin: EdgeInsets.all(10),
-        child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-
-            // todo : render children if selectedSong not null else render 'no song selected'
-            children: widgetArr,
-        )
-    );
+    return new Container(
+        padding: new EdgeInsets.all(16.0),
+        child: new Column(mainAxisSize: MainAxisSize.min, children: [
+          new Row(mainAxisSize: MainAxisSize.min, children: [
+            new IconButton(
+                onPressed: isPlaying ? null : () => play(),
+                iconSize: 64.0,
+                icon: new Icon(Icons.play_arrow),
+                color: Colors.cyan),
+            new IconButton(
+                onPressed: isPlaying ? () => pause() : null,
+                iconSize: 64.0,
+                icon: new Icon(Icons.pause),
+                color: Colors.cyan),
+            new IconButton(
+                onPressed: isPlaying || isPaused ? () => stop() : null,
+                iconSize: 64.0,
+                icon: new Icon(Icons.stop),
+                color: Colors.cyan),
+          ]),
+          duration == null
+              ? new Container()
+              : new Slider(
+              value: position?.inMilliseconds?.toDouble() ?? 0.0,
+              onChanged: (double value) =>
+                  audioPlayer.seek((value / 1000).roundToDouble()),
+              min: 0.0,
+              max: duration.inMilliseconds.toDouble()),
+          new Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              new IconButton(
+                  onPressed: () => null,
+                  icon: new Icon(Icons.headset_off),
+                  color: Colors.cyan),
+              new IconButton(
+                  onPressed: () => null,
+                  icon: new Icon(Icons.headset),
+                  color: Colors.cyan),
+            ],
+          ),
+          new Row(mainAxisSize: MainAxisSize.min, children: [
+            new Padding(
+                padding: new EdgeInsets.all(12.0),
+                child: new Stack(children: [
+                  new CircularProgressIndicator(
+                      value: 1.0,
+                      valueColor: new AlwaysStoppedAnimation(Colors.grey[300])),
+                  new CircularProgressIndicator(
+                    value: position != null && position.inMilliseconds > 0
+                        ? (position?.inMilliseconds?.toDouble() ?? 0.0) /
+                        (duration?.inMilliseconds?.toDouble() ?? 0.0)
+                        : 0.0,
+                    valueColor: new AlwaysStoppedAnimation(Colors.cyan),
+                    backgroundColor: Colors.yellow,
+                  ),
+                ])),
+            new Text(
+                position != null
+                    ? "${positionText ?? ''} / ${durationText ?? ''}"
+                    : duration != null ? durationText : '',
+                style: new TextStyle(fontSize: 24.0))
+          ])
+        ]));
   }
 }
