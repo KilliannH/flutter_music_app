@@ -10,6 +10,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import './models/song.dart';
 
+// --todo : REINSTALL PREVIOUS PLAYER
+
 typedef void OnError(Exception exception);
 
 Future<String> prepareUrl(String filename) async {
@@ -95,6 +97,7 @@ class _APlayerState extends State<APlayer> {
             position = new Duration(seconds: 0);
           });
         });
+    this.play();
   }
 
   Future play() async {
@@ -118,75 +121,63 @@ class _APlayerState extends State<APlayer> {
     });
   }
 
+  skipPrevious() { }
+
+  skipNext() { }
+
   void onComplete() {
     setState(() => playerState = PlayerState.stopped);
   }
 
   @override
   Widget build(BuildContext context) {
-    return new Container(
+    return new Container(alignment: Alignment.topCenter,
         padding: new EdgeInsets.all(16.0),
         child: new Column(mainAxisSize: MainAxisSize.min, children: [
-          new Row(mainAxisSize: MainAxisSize.min, children: [
-            new IconButton(
-                onPressed: isPlaying ? null : () => play(),
-                iconSize: 64.0,
-                icon: new Icon(Icons.play_arrow),
-                color: Colors.cyan),
-            new IconButton(
-                onPressed: isPlaying ? () => pause() : null,
-                iconSize: 64.0,
-                icon: new Icon(Icons.pause),
-                color: Colors.cyan),
-            new IconButton(
-                onPressed: isPlaying || isPaused ? () => stop() : null,
-                iconSize: 64.0,
-                icon: new Icon(Icons.stop),
-                color: Colors.cyan),
-          ]),
+          Padding(
+              padding: EdgeInsets.only(top: 40),
+              child:Text(widget.song.title, style: TextStyle(fontSize: 24),)
+          ),
+          Padding(
+              padding: EdgeInsets.only(bottom: 24),
+              child: Text(widget.song.artist, style: TextStyle(fontSize: 18),)),
+          Padding(
+            padding: EdgeInsets.only(bottom: 24),
+            child: Image(image: NetworkImage(
+              widget.song.albumImg),
+              width: 200,
+              height: 200
+            ),
+          ),
           duration == null
               ? new Container()
-              : new Slider(
-              value: position?.inMilliseconds?.toDouble() ?? 0.0,
-              onChanged: (double value) =>
-                  audioPlayer.seek((value / 1000).roundToDouble()),
-              min: 0.0,
-              max: duration.inMilliseconds.toDouble()),
-          new Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              new IconButton(
-                  onPressed: () => null,
-                  icon: new Icon(Icons.headset_off),
-                  color: Colors.cyan),
-              new IconButton(
-                  onPressed: () => null,
-                  icon: new Icon(Icons.headset),
-                  color: Colors.cyan),
-            ],
-          ),
-          new Row(mainAxisSize: MainAxisSize.min, children: [
-            new Padding(
-                padding: new EdgeInsets.all(12.0),
-                child: new Stack(children: [
-                  new CircularProgressIndicator(
-                      value: 1.0,
-                      valueColor: new AlwaysStoppedAnimation(Colors.grey[300])),
-                  new CircularProgressIndicator(
-                    value: position != null && position.inMilliseconds > 0
-                        ? (position?.inMilliseconds?.toDouble() ?? 0.0) /
-                        (duration?.inMilliseconds?.toDouble() ?? 0.0)
-                        : 0.0,
-                    valueColor: new AlwaysStoppedAnimation(Colors.cyan),
-                    backgroundColor: Colors.yellow,
-                  ),
-                ])),
-            new Text(
+              : new Row(mainAxisSize: MainAxisSize.min, children: [
+                new Text(
                 position != null
                     ? "${positionText ?? ''} / ${durationText ?? ''}"
                     : duration != null ? durationText : '',
-                style: new TextStyle(fontSize: 24.0))
-          ])
+                style: new TextStyle(fontSize: 16.0), textAlign: TextAlign.left,)
+          ]),
+          Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: new Row(mainAxisSize: MainAxisSize.min, children: [
+              new IconButton(
+                  onPressed: () => isPlaying ? stop() : skipPrevious(),
+                  iconSize: 40,
+                  icon: new Icon(Icons.skip_previous),
+              ),
+              new IconButton(
+                  onPressed: isPlaying ? () => pause() : () => play(),
+                  iconSize: 40,
+                  icon: new Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+              ),
+              new IconButton(
+                  onPressed: () => skipNext(),
+                  iconSize: 40,
+                  icon: new Icon(Icons.skip_next),
+              ),
+            ]),
+          ),
         ]));
   }
 }
