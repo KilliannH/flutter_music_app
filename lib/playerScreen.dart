@@ -13,7 +13,7 @@ class PlayerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: this._buildAppBar(context),
-        body: APlayer(this.selectedSong)
+        body: APlayer(filename: this.selectedSong.filename)
     );
   }
 
