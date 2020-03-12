@@ -72,60 +72,76 @@ class _APlayerState extends State<APlayer> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-                onPressed: _isPlaying ? null : () => _play(),
-                iconSize: 64.0,
-                icon: Icon(Icons.play_arrow),
-                color: Colors.cyan),
-            IconButton(
-                onPressed: _isPlaying ? () => _pause() : null,
-                iconSize: 64.0,
-                icon: Icon(Icons.pause),
-                color: Colors.cyan),
-            IconButton(
-                onPressed: _isPlaying || _isPaused ? () => _stop() : null,
-                iconSize: 64.0,
-                icon: Icon(Icons.stop),
-                color: Colors.cyan),
-          ],
-        ),
         Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 40.0),
+              child: Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 30),
+                      child: Text(
+                        _position != null
+                            ? '${_positionText ?? ''} / ${_durationText ?? ''}'
+                            : _duration != null ? _durationText : '',
+                        style: TextStyle(fontSize: 15.0,), textAlign: TextAlign.left,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Slider(
+                        onChanged: (v) {
+                          final Position = v * _duration.inMilliseconds;
+                          _audioPlayer
+                              .seek(Duration(milliseconds: Position.round()));
+                        },
+                        value: (_position != null &&
+                            _duration != null &&
+                            _position.inMilliseconds > 0 &&
+                            _position.inMilliseconds < _duration.inMilliseconds)
+                            ? _position.inMilliseconds / _duration.inMilliseconds
+                            : 0.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Padding(
-              padding: EdgeInsets.all(12.0),
-              child: Stack(
+              padding: EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Slider(
-                    onChanged: (v) {
-                      final Position = v * _duration.inMilliseconds;
-                      _audioPlayer
-                          .seek(Duration(milliseconds: Position.round()));
-                    },
-                    value: (_position != null &&
-                        _duration != null &&
-                        _position.inMilliseconds > 0 &&
-                        _position.inMilliseconds < _duration.inMilliseconds)
-                        ? _position.inMilliseconds / _duration.inMilliseconds
-                        : 0.0,
+                  IconButton(
+                      onPressed: () => {},
+                      iconSize: 50.0,
+                      icon: Icon(Icons.skip_previous),
+                      color: Colors.black45),
+                  ClipOval(
+                    child: Container(
+                      color: Colors.blue,
+                      child: IconButton(
+                                onPressed: _isPlaying ? () => _pause() : () => _play(),
+                                iconSize: 50.0,
+                                  icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+                                  color: Colors.white
+                            ),
+                    ),
                   ),
+                  IconButton(
+                      onPressed: _isPlaying || _isPaused ? () => _stop() : null,
+                      iconSize: 50.0,
+                      icon: Icon(Icons.skip_next),
+                      color: Colors.black45),
                 ],
               ),
             ),
-            Text(
-              _position != null
-                  ? '${_positionText ?? ''} / ${_durationText ?? ''}'
-                  : _duration != null ? _durationText : '',
-              style: TextStyle(fontSize: 24.0),
-            ),
-          ],
-        ),
-        Text("State: $_audioPlayerState")
-      ],
-    );
+      ]),
+    ]);
   }
 
   Future<String> prepareUrl(String filename) async {
