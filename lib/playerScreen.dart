@@ -13,7 +13,27 @@ class PlayerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: this._buildAppBar(context),
-        body: APlayer(filename: this.selectedSong.filename)
+        body: Column(
+          children: <Widget>[
+            Padding(
+                padding: EdgeInsets.only(top: 40),
+                child:Text(selectedSong.title, style: TextStyle(fontSize: 24),)
+            ),
+            Padding(
+                padding: EdgeInsets.only(bottom: 24),
+                child: Text(selectedSong.artist, style: TextStyle(fontSize: 18),)
+            ),
+            Padding(
+              padding: EdgeInsets.only(bottom: 24),
+              child: Image(image: NetworkImage(
+                  selectedSong.albumImg),
+                  width: 200,
+                  height: 200
+              ),
+            ),
+            APlayer(filename: this.selectedSong.filename)
+          ],
+        )
     );
   }
 

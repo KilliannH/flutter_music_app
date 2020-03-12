@@ -196,6 +196,8 @@ class _APlayerState extends State<APlayer> {
     });
 
     _playingRouteState = PlayingRouteState.speakers;
+
+    _play();
   }
 
   Future<int> _play() async {
