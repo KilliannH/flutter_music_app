@@ -276,5 +276,6 @@ class _APlayerState extends State<APlayer> {
 
   void _onComplete() {
     setState(() => _playerState = PlayerState.stopped);
+    _skipNext(this.context);
   }
 }
