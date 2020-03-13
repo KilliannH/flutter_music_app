@@ -123,9 +123,7 @@ class _MyAppState extends State<MyApp> {
               child: SongItem(songs[index].title, songs[index].artist,
                   songs[index].albumImg),
             ),
-            onTap: () {
-              return Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerScreen(songs[index])));
-            }
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PlayerScreen(songs[index], songs)))
         );
       },
       separatorBuilder: (BuildContext context, int index) => const Divider(),

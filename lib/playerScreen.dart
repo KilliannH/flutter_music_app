@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_music_app/services/cacheService.dart';
 
 import 'aPlayer.dart';
 import 'models/song.dart';
@@ -6,8 +7,9 @@ import 'models/song.dart';
 class PlayerScreen extends StatelessWidget {
 
   final Song selectedSong;
+  final List<Song> songList;
 
-  PlayerScreen(this.selectedSong);
+  PlayerScreen(this.selectedSong, this.songList);
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class PlayerScreen extends StatelessWidget {
                   height: 200
               ),
             ),
-            APlayer(filename: this.selectedSong.filename)
+            APlayer(currentSong: this.selectedSong, songList: songList)
           ],
         )
     );

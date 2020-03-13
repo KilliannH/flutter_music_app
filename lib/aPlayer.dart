@@ -4,24 +4,32 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_music_app/playerScreen.dart';
 import 'dart:convert';
+
+import 'models/song.dart';
 
 enum PlayerState { stopped, playing, paused }
 enum PlayingRouteState { speakers, earpiece }
 
 class APlayer extends StatefulWidget {
-  final String filename;
+  final Song currentSong;
   final PlayerMode mode;
+  final List<Song> songList;
 
-  APlayer({@required this.filename, this.mode = PlayerMode.MEDIA_PLAYER});
+  APlayer({@required this.currentSong, this.mode = PlayerMode.MEDIA_PLAYER, this.songList});
 
   @override
   State<StatefulWidget> createState() {
-    return _APlayerState(filename, mode);
+    return _APlayerState(currentSong.filename, mode);
   }
 }
 
 class _APlayerState extends State<APlayer> {
+
+  Song previousSong;
+  Song nextSong;
+
   String url;
   String filename;
 
@@ -53,6 +61,17 @@ class _APlayerState extends State<APlayer> {
   @override
   void initState() {
     super.initState();
+    for(var i = 0; i < widget.songList.length; i++) {
+      if (widget.songList[i].id == widget.currentSong.id) {
+        if (i > 0) {
+          previousSong = widget.songList[i - 1];
+        }
+
+        if (i < widget.songList.length - 1) {
+          nextSong = widget.songList[i + 1];
+        }
+      }
+    }
     _initAudioPlayer();
   }
 
@@ -117,13 +136,13 @@ class _APlayerState extends State<APlayer> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                      onPressed: () => {},
+                      onPressed: _isPlaying || _isPaused ? () => _stop() : () => _skipPrevious(context),
                       iconSize: 50.0,
                       icon: Icon(Icons.skip_previous),
                       color: Colors.black45),
                   ClipOval(
                     child: Container(
-                      color: Colors.blue,
+                      color: Colors.lightBlue,
                       child: IconButton(
                                 onPressed: _isPlaying ? () => _pause() : () => _play(),
                                 iconSize: 50.0,
@@ -133,7 +152,7 @@ class _APlayerState extends State<APlayer> {
                     ),
                   ),
                   IconButton(
-                      onPressed: _isPlaying || _isPaused ? () => _stop() : null,
+                      onPressed: () => _skipNext(context),
                       iconSize: 50.0,
                       icon: Icon(Icons.skip_next),
                       color: Colors.black45),
@@ -143,6 +162,10 @@ class _APlayerState extends State<APlayer> {
       ]),
     ]);
   }
+
+  _skipPrevious(context) => previousSong != null ? Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerScreen(previousSong, widget.songList))) : null;
+
+  _skipNext(context) => nextSong != null ? Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlayerScreen(nextSong, widget.songList))) : null;
 
   Future<String> prepareUrl(String filename) async {
     var value = await rootBundle.loadString('assets/config.json');

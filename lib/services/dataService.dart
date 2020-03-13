@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_music_app/services/cacheService.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_music_app/models/song.dart';
@@ -28,6 +29,8 @@ class DataService {
       var songsJson = jsonDecode(response.body) as List;
 
       List<Song> songList = songsJson.map((songJson) => Song.fromJson(songJson)).toList();
+
+      CacheService.songList = songList;
       return songList;
   }
 
